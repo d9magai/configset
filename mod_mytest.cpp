@@ -8,9 +8,6 @@ extern "C" module AP_MODULE_DECLARE_DATA mytest_module;
 
 APLOG_USE_MODULE (mytest);
 
-/* プロトタイプ宣言を追加(追加) */
-//module AP_MODULE_DECLARE_DATA mytest_module;
-
 /* モジュール設定情報(追加) */
 struct mytest_config {
   char  * message;
@@ -59,7 +56,6 @@ static const char *cmd_mytest_message (cmd_parms *parms, void *mconfig, char *ar
 }
 
 /* 設定情報フック定義(追加) */
-//typedef const char *(*CMD_HAND_TYPE) (cmd_parms*,void*);
 static const command_rec mytest_cmds[] = {
   {
     "MytestMessage",                    /* ディレクティブ名 */
