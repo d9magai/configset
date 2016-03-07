@@ -12,7 +12,7 @@ APLOG_USE_MODULE(mytest);
 
 /* モジュール設定情報(追加) */
 struct mytest_config {
-    std::shared_ptr<std::string> ptr;
+    std::shared_ptr<std::string> ip;
 } mytest_config;
 
 /* 設定情報の生成・初期化(追加) */
@@ -21,7 +21,7 @@ static void * create_per_server_config(apr_pool_t *pool, server_rec *s)
     void * buf = apr_pcalloc(pool, sizeof(mytest_config));
     struct mytest_config *cfg = (struct mytest_config*) buf;
     // default value
-    cfg->ptr = std::make_shared<std::string>("The sample page by mod_mytest.c");
+    cfg->ip = std::make_shared<std::string>("127.0.0.1");
     return buf;
 }
 
@@ -37,7 +37,7 @@ static int mytest_handler(request_rec *r)
 
     /* 設定を出力(変更) */
     if (!r->header_only) {
-        ap_rputs(cfg->ptr->c_str(), r);
+        ap_rputs(cfg->ip->c_str(), r);
         /* ログ出力 */
         ap_log_rerror(APLOG_MARK, APLOG_NOTICE, 0, r, "request : %s", r->uri);
     }
@@ -51,10 +51,10 @@ static void mytest_register_hooks(apr_pool_t *p)
 }
 
 /* 設定情報読み込み(追加) */
-static const char *cmd_mytest_message(cmd_parms *parms, void *mconfig, const char *arg)
+static const char *set_ip_address(cmd_parms *parms, void *mconfig, const char *arg)
 {
     struct mytest_config *cfg = (struct mytest_config*) ap_get_module_config(parms->server->module_config, &mytest_module);
-    cfg->ptr = std::make_shared<std::string>(arg);
+    cfg->ip = std::make_shared<std::string>(arg);
     return 0;
 }
 
@@ -62,7 +62,7 @@ static const char *cmd_mytest_message(cmd_parms *parms, void *mconfig, const cha
 static const command_rec mytest_cmds[] =
     {
         {
-        "MytestMessage", cmd_mytest_message, 0, OR_ALL, TAKE1, "Custom message."
+        "RedisIPAddress", set_ip_address, 0, RSRC_CONF, TAKE1, "The address of the REDIS server."
         },
         {
         0
