@@ -31,7 +31,7 @@ static int mytest_handler(request_rec *r)
         return DECLINED;
     }
     /* 設定情報取得(追加) */
-    struct mytest_config *cfg = (struct mytest_config*) ap_get_module_config(r->server->module_config, &mytest_module);
+    mytest_config *cfg = reinterpret_cast<mytest_config*>(ap_get_module_config(r->server->module_config, &mytest_module));
     r->content_type = "text/html";
 
     /* 設定を出力(変更) */
@@ -52,7 +52,7 @@ static void mytest_register_hooks(apr_pool_t *p)
 /* 設定情報読み込み(追加) */
 static const char *set_ip_address(cmd_parms *parms, void *mconfig, const char *arg)
 {
-    struct mytest_config *cfg = (struct mytest_config*) ap_get_module_config(parms->server->module_config, &mytest_module);
+    mytest_config *cfg = reinterpret_cast<mytest_config*>(ap_get_module_config(parms->server->module_config, &mytest_module));
     cfg->ip = std::make_shared<std::string>(arg);
     return 0;
 }
