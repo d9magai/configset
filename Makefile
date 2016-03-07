@@ -27,18 +27,13 @@ all: mod_mytest.so
 # ld so we end up with the right c++ stuff. We do this in two steps,
 # compile and link.
 
-# get OpenCV's cflags, libs
-export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/opt/opencv/lib/pkgconfig
-OPENCV_CFLAGS=`pkg-config --cflags opencv`
-OPENCV_LIBS=`pkg-config --libs opencv`
-
 # compile
 mod_mytest.o: mod_mytest.cpp
-	g++ -c -fPIC -std=c++11 -I$(APXS_INCLUDEDIR) -I/usr/include/apr-1/ -I/usr/include/apreq2/ $(OPENCV_CFLAGS) $(APXS_CFLAGS) $(APXS_CFLAGS_SHLIB) -Wall -o $@ $< 
+	g++ -c -fPIC -std=c++11 -I$(APXS_INCLUDEDIR) -I/usr/include/apr-1/ -I/usr/include/apreq2/ $(APXS_CFLAGS) $(APXS_CFLAGS_SHLIB) -Wall -o $@ $< 
 
 # link
 mod_mytest.so: mod_mytest.o 
-	g++ -fPIC -shared -o $@ $< $(APXS_LIBS_SHLIB) -lapreq2 -ljson  $(OPENCV_LIBS)
+	g++ -fPIC -shared -o $@ $< $(APXS_LIBS_SHLIB) -lapreq2 -ljson 
 # install the shared object file into Apache 
 install: all
 	$(APXS) -i -a -n 'mytest' mod_mytest.so
