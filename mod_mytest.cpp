@@ -14,7 +14,7 @@ struct mytest_config {
 }mytest_config;
 
 /* 設定情報の生成・初期化(追加) */
-static void * create_per_dir_config (apr_pool_t *pool, char *arg)
+static void * create_per_server_config (apr_pool_t *pool, server_rec *s)
 {
   void * buf = apr_pcalloc(pool, sizeof(mytest_config));
   struct mytest_config *cfg = (struct mytest_config*)buf;
@@ -30,7 +30,7 @@ static int mytest_handler(request_rec *r)
         return DECLINED;
     }
     /* 設定情報取得(追加) */
-    struct mytest_config *cfg = (struct mytest_config*)ap_get_module_config(r->per_dir_config, &mytest_module);
+    struct mytest_config *cfg = (struct mytest_config*)ap_get_module_config(r->server->module_config, &mytest_module);
     r->content_type = "text/html";      
 
     /* 設定を出力(変更) */
@@ -50,7 +50,7 @@ static void mytest_register_hooks(apr_pool_t *p)
 
 /* 設定情報読み込み(追加) */
 static const char *cmd_mytest_message (cmd_parms *parms, void *mconfig, const char *arg){
-  struct mytest_config *cfg = (struct mytest_config*)mconfig;
+  struct mytest_config *cfg = (struct mytest_config*)ap_get_module_config(parms->server->module_config, &mytest_module);
   cfg->message = apr_pstrdup(parms->pool,arg);
   return 0;
 }
@@ -71,9 +71,9 @@ static const command_rec mytest_cmds[] = {
 /* モジュール・フック定義(create_per_dir_config,mytest_cmds,追加) */
 module AP_MODULE_DECLARE_DATA mytest_module = {
     STANDARD20_MODULE_STUFF, 
-    create_per_dir_config, /* create per-dir    config structures */
+    NULL,                  /* create per-dir    config structures */
     NULL,                  /* merge  per-dir    config structures */
-    NULL,                  /* create per-server config structures */
+    create_per_server_config, /* create per-server config structures */
     NULL,                  /* merge  per-server config structures */
     mytest_cmds,           /* table of config file commands       */
     mytest_register_hooks  /* register hooks                      */
