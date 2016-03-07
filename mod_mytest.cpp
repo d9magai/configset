@@ -49,7 +49,7 @@ static void mytest_register_hooks(apr_pool_t *p)
 }
 
 /* 設定情報読み込み(追加) */
-static const char *cmd_mytest_message (cmd_parms *parms, void *mconfig, char *arg){
+static const char *cmd_mytest_message (cmd_parms *parms, void *mconfig, const char *arg){
   struct mytest_config *cfg = (struct mytest_config*)mconfig;
   cfg->message = apr_pstrdup(parms->pool,arg);
   return 0;
