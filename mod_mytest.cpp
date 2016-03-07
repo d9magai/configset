@@ -16,7 +16,7 @@ struct mytest_config {
 };
 
 /* 設定情報の生成・初期化(追加) */
-static void * create_per_server_config(apr_pool_t *pool, server_rec *s)
+static void *create_per_server_config(apr_pool_t *pool, server_rec *s)
 {
     mytest_config *cfg = reinterpret_cast<mytest_config*>(apr_pcalloc(pool, sizeof(mytest_config)));
     // default value
