@@ -13,16 +13,15 @@ APLOG_USE_MODULE(mytest);
 /* モジュール設定情報(追加) */
 struct mytest_config {
     std::shared_ptr<std::string> ip;
-} mytest_config;
+};
 
 /* 設定情報の生成・初期化(追加) */
 static void * create_per_server_config(apr_pool_t *pool, server_rec *s)
 {
-    void * buf = apr_pcalloc(pool, sizeof(mytest_config));
-    struct mytest_config *cfg = (struct mytest_config*) buf;
+    mytest_config *cfg = reinterpret_cast<mytest_config*>(apr_pcalloc(pool, sizeof(mytest_config)));
     // default value
     cfg->ip = std::make_shared<std::string>("127.0.0.1");
-    return buf;
+    return cfg;
 }
 
 /* ハンドラ本体 */
