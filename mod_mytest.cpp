@@ -5,6 +5,7 @@
 #include <http_protocol.h>
 #include <http_log.h>
 #include <apr_strings.h>
+#include <hiredis/hiredis.h>
 
 extern "C" module AP_MODULE_DECLARE_DATA mytest_module;
 
@@ -12,7 +13,9 @@ APLOG_USE_MODULE(mytest);
 
 /* モジュール設定情報(追加) */
 struct mytest_config {
+    redisContext *context;
     std::shared_ptr<std::string> ip;
+    int port;
 };
 
 /* 設定情報の生成・初期化(追加) */
@@ -57,11 +60,26 @@ static const char *set_ip_address(cmd_parms *parms, void *mconfig, const char *a
     return 0;
 }
 
+static const char *set_port(cmd_parms *parms, void *in_struct_ptr, const char *arg)
+{
+    int port;
+    if (sscanf(arg, "%d", &port) != 1) {
+        return "RedisPort argument must be an integer representing the port number";
+    }
+
+    mytest_config *cfg = reinterpret_cast<mytest_config*>(ap_get_module_config(parms->server->module_config, &mytest_module));
+    cfg->port = port;
+    return NULL;
+}
+
 /* 設定情報フック定義(追加) */
 static const command_rec mytest_cmds[] =
     {
         {
         "RedisIPAddress", set_ip_address, 0, RSRC_CONF, TAKE1, "The address of the REDIS server."
+        },
+        {
+        "RedisPort", set_port, 0, RSRC_CONF, TAKE1, "The port number of the REDIS server."
         },
         {
         0
