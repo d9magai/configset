@@ -33,7 +33,7 @@ mod_mytest.o: mod_mytest.cpp
 
 # link
 mod_mytest.so: mod_mytest.o 
-	g++ -fPIC -shared -o $@ $< $(APXS_LIBS_SHLIB) -lapreq2
+	g++ -fPIC -shared -o $@ $< $(APXS_LIBS_SHLIB) -lapreq2 -lhiredis
 # install the shared object file into Apache 
 install: all
 	$(APXS) -i -a -n 'mytest' mod_mytest.so
