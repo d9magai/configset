@@ -24,6 +24,7 @@ static void *create_per_server_config(apr_pool_t *pool, server_rec *s)
     mytest_config *cfg = reinterpret_cast<mytest_config*>(apr_pcalloc(pool, sizeof(mytest_config)));
     // default value
     cfg->ip = std::make_shared<std::string>("127.0.0.1");
+    cfg->port = 6379;
     return cfg;
 }
 
