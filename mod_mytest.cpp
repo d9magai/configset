@@ -16,6 +16,7 @@ struct mytest_config {
     redisContext *context;
     std::shared_ptr<std::string> ip;
     int port;
+    int timeout;
 };
 
 /* 設定情報の生成・初期化(追加) */
@@ -25,6 +26,7 @@ static void *create_per_server_config(apr_pool_t *pool, server_rec *s)
     // default value
     cfg->ip = std::make_shared<std::string>("127.0.0.1");
     cfg->port = 6379;
+    cfg->timeout = 1500;
     return cfg;
 }
 
@@ -73,6 +75,18 @@ static const char *set_port(cmd_parms *parms, void *in_struct_ptr, const char *a
     return NULL;
 }
 
+static const char * set_timeout(cmd_parms *parms, void *in_struct_ptr, const char *arg)
+{
+    int timeout;
+    if (sscanf(arg, "%d", &timeout) != 1) {
+        return "RedisTimeout argument must be an integer representing the timeout setting for a connection";
+    }
+
+    mytest_config *cfg = reinterpret_cast<mytest_config*>(ap_get_module_config(parms->server->module_config, &mytest_module));
+    cfg->timeout = timeout;
+    return NULL;
+}
+
 /* 設定情報フック定義(追加) */
 static const command_rec mytest_cmds[] =
     {
@@ -81,6 +95,9 @@ static const command_rec mytest_cmds[] =
         },
         {
         "RedisPort", set_port, 0, RSRC_CONF, TAKE1, "The port number of the REDIS server."
+        },
+        {
+        "RedisTimeout", set_timeout, 0, RSRC_CONF, TAKE1, "The timeout for connections to the REDIS server"
         },
         {
         0
