@@ -58,9 +58,13 @@ static void mytest_register_hooks(apr_pool_t *p)
 /* 設定情報読み込み(追加) */
 static const char *set_ip_address(cmd_parms *parms, void *mconfig, const char *arg)
 {
+    if (strlen(arg) == 0) {
+        return "RedisIPAddress argument must be a string representing a server address";
+    }
+
     mytest_config *cfg = reinterpret_cast<mytest_config*>(ap_get_module_config(parms->server->module_config, &mytest_module));
     cfg->ip = std::make_shared<std::string>(arg);
-    return 0;
+    return NULL;
 }
 
 static const char *set_port(cmd_parms *parms, void *in_struct_ptr, const char *arg)
