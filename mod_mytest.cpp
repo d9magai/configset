@@ -1,4 +1,4 @@
-#include <string>
+#include <sstream>
 #include <memory>
 #include <httpd.h>
 #include "http_config.h"
@@ -6,6 +6,7 @@
 #include <http_log.h>
 #include <apr_strings.h>
 #include <hiredis/hiredis.h>
+#include "serverexception.h"
 
 extern "C" module AP_MODULE_DECLARE_DATA mytest_module;
 
@@ -42,7 +43,9 @@ redisContext *getRedisContext(request_rec *r)
     timeout.tv_usec = (conf->timeout - (timeout.tv_sec * 1000)) * 1000;
     conf->context = redisConnectWithTimeout(conf->ip->c_str(), conf->port, timeout);
     if((!conf->context) || (conf->context->err != REDIS_OK)) {
-        ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "Connection to REDIS failed to %s:%d", conf->ip->c_str(), conf->port);
+        std::stringstream ss;
+        ss << "Connection to REDIS failed to " << *(conf->ip) << ":" << conf->port;
+        throw d9magai::internal_server_error(ss.str());
     }
     return conf->context;
 }
@@ -54,13 +57,21 @@ static int mytest_handler(request_rec *r)
         return DECLINED;
     }
 
-    r->content_type = "text/html";
-    /* 設定を出力(変更) */
-    if (!r->header_only) {
-        /* ログ出力 */
-        redisReply *resp = reinterpret_cast<redisReply*>(redisCommand(getRedisContext(r), "GET 1"));
-        ap_rputs(resp->str, r);
-        ap_log_rerror(APLOG_MARK, APLOG_NOTICE, 0, r, "request : %s", r->uri);
+    try {
+        r->content_type = "text/html";
+        /* 設定を出力(変更) */
+        if (!r->header_only) {
+            /* ログ出力 */
+            redisReply *resp = reinterpret_cast<redisReply*>(redisCommand(getRedisContext(r), "GET 1"));
+            ap_rputs(resp->str, r);
+            ap_log_rerror(APLOG_MARK, APLOG_NOTICE, 0, r, "request : %s", r->uri);
+        }
+    } catch (d9magai::internal_server_error& e) {
+        ap_log_rerror(APLOG_MARK, APLOG_ERR, APLOG_MODULE_INDEX, r, e.what());
+        return HTTP_INTERNAL_SERVER_ERROR;
+    } catch (std::exception& e) {
+        ap_log_rerror(APLOG_MARK, APLOG_ERR, APLOG_MODULE_INDEX, r, e.what());
+        return HTTP_INTERNAL_SERVER_ERROR;
     }
     return OK;
 }
