@@ -30,6 +30,23 @@ static void *create_per_server_config(apr_pool_t *pool, server_rec *s)
     return cfg;
 }
 
+redisContext *getRedisContext(request_rec *r)
+{
+    mytest_config *conf = reinterpret_cast<mytest_config*>(ap_get_module_config(r->server->module_config, &mytest_module));
+    if (conf->context) {
+        return conf->context;
+    }
+
+    timeval timeout;
+    timeout.tv_sec = conf->timeout / 1000;
+    timeout.tv_usec = (conf->timeout - (timeout.tv_sec * 1000)) * 1000;
+    conf->context = redisConnectWithTimeout(conf->ip->c_str(), conf->port, timeout);
+    if((!conf->context) || (conf->context->err != REDIS_OK)) {
+        ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "Connection to REDIS failed to %s:%d", conf->ip->c_str(), conf->port);
+    }
+    return conf->context;
+}
+
 /* ハンドラ本体 */
 static int mytest_handler(request_rec *r)
 {
@@ -37,23 +54,12 @@ static int mytest_handler(request_rec *r)
         return DECLINED;
     }
 
-    /* 設定情報取得(追加) */
-    mytest_config *conf = reinterpret_cast<mytest_config*>(ap_get_module_config(r->server->module_config, &mytest_module));
-    timeval timeout;
-    if (!conf->context) {
-        timeout.tv_sec = conf->timeout / 1000;
-        timeout.tv_usec = (conf->timeout - (timeout.tv_sec * 1000)) * 1000;
-        conf->context = redisConnectWithTimeout(conf->ip->c_str(), conf->port, timeout);
-        if((!conf->context) || (conf->context->err != REDIS_OK)) {
-            ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "Connection to REDIS failed to %s:%d", conf->ip->c_str(), conf->port);
-        }
-    }
-
     r->content_type = "text/html";
-
     /* 設定を出力(変更) */
     if (!r->header_only) {
         /* ログ出力 */
+        redisReply *resp = reinterpret_cast<redisReply*>(redisCommand(getRedisContext(r), "GET 1"));
+        ap_rputs(resp->str, r);
         ap_log_rerror(APLOG_MARK, APLOG_NOTICE, 0, r, "request : %s", r->uri);
     }
     return OK;
