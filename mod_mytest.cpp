@@ -8,16 +8,9 @@
 #include <hiredis/hiredis.h>
 #include "serverexception.h"
 #include "module_declare_data.h"
+#include "module_config_struct.h"
 
 APLOG_USE_MODULE(mytest);
-
-/* モジュール設定情報(追加) */
-struct mytest_config {
-    redisContext *context;
-    std::shared_ptr<std::string> ip;
-    int port;
-    int timeout;
-};
 
 /* 設定情報の生成・初期化(追加) */
 static void *create_per_server_config(apr_pool_t *pool, server_rec *s)
