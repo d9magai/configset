@@ -7,8 +7,7 @@
 #include <apr_strings.h>
 #include <hiredis/hiredis.h>
 #include "serverexception.h"
-
-extern "C" module AP_MODULE_DECLARE_DATA mytest_module;
+#include "module_declare_data.h"
 
 APLOG_USE_MODULE(mytest);
 
@@ -117,34 +116,4 @@ static const char * set_timeout(cmd_parms *parms, void *in_struct_ptr, const cha
     cfg->timeout = timeout;
     return NULL;
 }
-
-/* 設定情報フック定義(追加) */
-static const command_rec mytest_cmds[] =
-    {
-        {
-        "RedisIPAddress", set_ip_address, 0, RSRC_CONF, TAKE1, "The address of the REDIS server."
-        },
-        {
-        "RedisPort", set_port, 0, RSRC_CONF, TAKE1, "The port number of the REDIS server."
-        },
-        {
-        "RedisTimeout", set_timeout, 0, RSRC_CONF, TAKE1, "The timeout for connections to the REDIS server"
-        },
-        {
-        0
-        },
-    };
-
-/* モジュール・フック定義(create_per_dir_config,mytest_cmds,追加) */
-module AP_MODULE_DECLARE_DATA mytest_module =
-    {
-    STANDARD20_MODULE_STUFF,
-    NULL, /* create per-dir    config structures */
-    NULL, /* merge  per-dir    config structures */
-    create_per_server_config, /* create per-server config structures */
-    NULL, /* merge  per-server config structures */
-    mytest_cmds, /* table of config file commands       */
-    mytest_register_hooks
-    /* register hooks                      */
-    };
 
