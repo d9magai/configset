@@ -9,6 +9,9 @@
 #include "serverexception.h"
 #include "module_declare_data.h"
 #include "module_config_struct.h"
+#include "cached_hiredis.h"
+
+extern "C" module AP_MODULE_DECLARE_DATA mytest_module;
 
 APLOG_USE_MODULE(mytest);
 
@@ -21,25 +24,6 @@ static void *create_per_server_config(apr_pool_t *pool, server_rec *s)
     cfg->port = 6379;
     cfg->timeout = 1500;
     return cfg;
-}
-
-redisContext *getRedisContext(request_rec *r)
-{
-    mytest_config *conf = reinterpret_cast<mytest_config*>(ap_get_module_config(r->server->module_config, &mytest_module));
-    if (conf->context) {
-        return conf->context;
-    }
-
-    timeval timeout;
-    timeout.tv_sec = conf->timeout / 1000;
-    timeout.tv_usec = (conf->timeout - (timeout.tv_sec * 1000)) * 1000;
-    conf->context = redisConnectWithTimeout(conf->ip->c_str(), conf->port, timeout);
-    if((!conf->context) || (conf->context->err != REDIS_OK)) {
-        std::stringstream ss;
-        ss << "Connection to REDIS failed to " << *(conf->ip) << ":" << conf->port;
-        throw d9magai::internal_server_error(ss.str());
-    }
-    return conf->context;
 }
 
 /* ハンドラ本体 */
@@ -109,4 +93,17 @@ static const char * set_timeout(cmd_parms *parms, void *in_struct_ptr, const cha
     cfg->timeout = timeout;
     return NULL;
 }
+
+/* モジュール・フック定義 */
+module AP_MODULE_DECLARE_DATA mytest_module =
+    {
+    STANDARD20_MODULE_STUFF,
+    NULL,                     /* create per-dir    config structures */
+    NULL,                     /* merge  per-dir    config structures */
+    create_per_server_config, /* create per-server config structures */
+    NULL,                     /* merge  per-server config structures */
+    mytest_cmds,              /* table of config file commands       */
+    mytest_register_hooks     /* register hooks                      */
+    };
+
 

@@ -4,8 +4,6 @@
 #include "http_config.h"
 #include <http_protocol.h>
 
-extern "C" module AP_MODULE_DECLARE_DATA mytest_module;
-
 /* 設定情報の生成・初期化(追加) */
 static void *create_per_server_config(apr_pool_t *pool, server_rec *s);
 
@@ -34,17 +32,5 @@ static const command_rec mytest_cmds[] =
         {
         0
         },
-    };
-
-/* モジュール・フック定義 */
-module AP_MODULE_DECLARE_DATA mytest_module =
-    {
-    STANDARD20_MODULE_STUFF,
-    NULL,                     /* create per-dir    config structures */
-    NULL,                     /* merge  per-dir    config structures */
-    create_per_server_config, /* create per-server config structures */
-    NULL,                     /* merge  per-server config structures */
-    mytest_cmds,              /* table of config file commands       */
-    mytest_register_hooks     /* register hooks                      */
     };
 
