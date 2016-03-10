@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+#include <memory>
 #include <exception>
 
 namespace d9magai {
