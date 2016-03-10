@@ -20,6 +20,8 @@ APXS_LDFLAGS_SHLIB=`$(APXS) -q LDFLAGS_SHLIB`
 APXS_SYSCONFDIR=`$(APXS) -q SYSCONFDIR`
 APXS_LIBS_SHLIB=`$(APXS) -q LIBS_SHLIB`
 
+OBJ = mod_mytest.o cached_hiredis.o
+
 #   the default target
 all: mod_mytest.so
 
@@ -30,10 +32,12 @@ all: mod_mytest.so
 # compile
 mod_mytest.o: mod_mytest.cpp
 	g++ -c -fPIC -std=c++11 -I$(APXS_INCLUDEDIR) -I/usr/include/apr-1/ -I/usr/include/apreq2/ $(APXS_CFLAGS) $(APXS_CFLAGS_SHLIB) -Wall -o $@ $< 
+cached_hiredis.o: cached_hiredis.cpp
+	g++ -c -fPIC -std=c++11 -I$(APXS_INCLUDEDIR) -I/usr/include/apr-1/ -I/usr/include/apreq2/ $(APXS_CFLAGS) $(APXS_CFLAGS_SHLIB) -Wall -o $@ $< 
 
 # link
-mod_mytest.so: mod_mytest.o 
-	g++ -fPIC -shared -o $@ $< $(APXS_LIBS_SHLIB) -lapreq2 -lhiredis
+mod_mytest.so: mod_mytest.o cached_hiredis.o
+	g++ -fPIC -shared -o $@ $(OBJ) $(APXS_LIBS_SHLIB) -lapreq2 -lhiredis
 # install the shared object file into Apache 
 install: all
 	$(APXS) -i -a -n 'mytest' mod_mytest.so
