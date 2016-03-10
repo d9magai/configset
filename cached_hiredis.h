@@ -8,7 +8,6 @@
 #include <hiredis/hiredis.h>
 #include "module_config_struct.h"
 #include "serverexception.h"
-#include "module_declare_data.h"
 
 extern "C" module AP_MODULE_DECLARE_DATA mytest_module;
 
