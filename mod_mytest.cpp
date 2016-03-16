@@ -7,7 +7,6 @@
 #include <apr_strings.h>
 #include <hiredis/hiredis.h>
 #include "serverexception.h"
-#include "module_declare_data.h"
 #include "module_config_struct.h"
 #include "cached_hiredis.h"
 
@@ -93,6 +92,23 @@ static const char * set_timeout(cmd_parms *parms, void *in_struct_ptr, const cha
     cfg->timeout = timeout;
     return NULL;
 }
+
+/* 設定情報フック定義(追加) */
+static const command_rec mytest_cmds[] =
+    {
+        {
+        "RedisIPAddress", set_ip_address, 0, RSRC_CONF, TAKE1, "The address of the REDIS server."
+        },
+        {
+        "RedisPort", set_port, 0, RSRC_CONF, TAKE1, "The port number of the REDIS server."
+        },
+        {
+        "RedisTimeout", set_timeout, 0, RSRC_CONF, TAKE1, "The timeout for connections to the REDIS server"
+        },
+        {
+        0
+        },
+    };
 
 /* モジュール・フック定義 */
 module AP_MODULE_DECLARE_DATA mytest_module =
